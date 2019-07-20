@@ -5,13 +5,15 @@ This project was developed to make use of sensors setup as part of the [Air Qual
 
 ![photo of built project](images/rpi2+built.png)
 
-When running the first LED will indicate the PM10 level over a range of 0 to 20 with the LED going from green to red depending on the value.
 
-The second LED will indicate the PM2.5 level over a range of 0 to 10 with LED going from green to red depending on the value.
+When running the LEDs indicate as follows:
 
-If the Raspberry Pi is unable to connect to the Luftdaten API then the second LED will go blue.
+* Left - the PM10 level over a range of 0 to 20 with the colour going from green to red.
+* Right - the PM2.5 level over a range of 0 to 10 with the colour going from green to red.
 
-When it starts up, just as a diagnostics test, the first LED will cycle from green to red.
+If the Raspberry Pi is unable to connect to the Luftdaten API then the right LED will go blue.
+
+When it starts up, just as a diagnostics test, the left LED will cycle from green to red.
 
 ## Hardware requirements
 Raspberry Pi (initial build was done using a 2 B+ but it should work on other models)
