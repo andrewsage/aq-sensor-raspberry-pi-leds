@@ -87,7 +87,7 @@ SENSOR_ID = 27319 # My sensor
 #SENSOR_ID = 28016 # high sensor in England
 #SENSOR_ID = 7239 # high sensor in Germany
 
-UPDATE_FREQUENCY = 10
+UPDATE_FREQUENCY = 120
 RUNNING = True
 
 aq_indicator = AQIndicator(SENSOR_ID)
