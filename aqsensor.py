@@ -6,7 +6,7 @@ import RPi.GPIO as GPIO
 import time
 
 class SensorLED:
-	def __init__(self, green = 6, red = 5, blue = 13):
+	def __init__(self, green, red, blue):
 		GPIO.setup(red, GPIO.OUT)
 		GPIO.setup(green, GPIO.OUT)
 		GPIO.setup(blue, GPIO.OUT)
@@ -43,10 +43,10 @@ class SensorLED:
 		self.setColour(colour)
 
 class AQIndicator:
-	def __init__(self, sensor_id, p1_green = 6, p1_red = 5, p1_blue = 13):
+	def __init__(self, sensor_id):
 		self.sensor_id = sensor_id
-		self.p1_sensor_led = SensorLED(6, 5, 13)
-		self.p2_sensor_led = SensorLED(14, 15, 18)
+		self.p1_sensor_led = SensorLED(14, 15, 18)
+		self.p2_sensor_led = SensorLED(6, 5, 13)
 
 	# Test cycle through the colour range
 	def demoCycle(self):
@@ -87,7 +87,7 @@ SENSOR_ID = 27319 # My sensor
 #SENSOR_ID = 28016 # high sensor in England
 #SENSOR_ID = 7239 # high sensor in Germany
 
-update_frequency = 10
+UPDATE_FREQUENCY = 10
 RUNNING = True
 
 aq_indicator = AQIndicator(SENSOR_ID)
@@ -95,7 +95,7 @@ aq_indicator.demoCycle()
 
 try:
 	while RUNNING:
-		aq_indicator.displayLevels(update_frequency)
+		aq_indicator.displayLevels(UPDATE_FREQUENCY)
 
 except KeyboardInterrupt:
 	RUNNING = False
