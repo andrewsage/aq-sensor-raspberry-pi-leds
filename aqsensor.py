@@ -6,7 +6,7 @@ import RPi.GPIO as GPIO
 import time
 
 class SensorLED:
-	def __init__(self, green, red, blue):
+	def __init__(self, red, green, blue):
 		GPIO.setup(red, GPIO.OUT)
 		GPIO.setup(green, GPIO.OUT)
 		GPIO.setup(blue, GPIO.OUT)
