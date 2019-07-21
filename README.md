@@ -31,12 +31,15 @@ matplotlib is used to create the colour gradients. If it is not installed then i
 
 `sudo pip3 install matplotlib`
 
-## Configuring
+## Configuration
 
 Change the following in the code:
 
-* `SENSOR_ID` to the Luftdaten ID of the sensor you wish to monitor.
+* `DIRECT` to `True` to get data directly from sensor, `False` to get data from Luftdaten API.
+* `SENSOR_IP` to the IP address of the sensor - used when getting data directly from the sensor.
+* `SENSOR_ID` to the Luftdaten ID of the sensor you wish to monitor - used when getting data from Luftdaten API.
 * `UPDATE_FREQUENCY` to the number of milliseconds between requests to the Luftdaten API.
+
 
 ## Running
 
