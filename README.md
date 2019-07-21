@@ -26,6 +26,11 @@ Raspberry Pi (initial build was done using a 2 B+ but it should work on other mo
 
 ![breadboard diagram for Raspberry Pi AQ Sensor LEDs](images/aq-sensor-rpi-leds_bb.png)
 
+## Software requirements
+matplotlib is used to create the colour gradients. If it is not installed then install it using the following:
+
+`sudo pip3 install matplotlib`
+
 ## Configuring
 
 Change the following in the code:
