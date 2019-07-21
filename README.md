@@ -16,7 +16,7 @@ If the Raspberry Pi is unable to connect to the Luftdaten API then the right LED
 When it starts up, just as a diagnostics test, the left LED will cycle from green to red.
 
 ## Hardware requirements
-Raspberry Pi (initial build was done using a 2 B+ but it should work on other models)
+Raspberry Pi (has been tested on Raspberry Pi 2B+ and 3B+)
 
 * 2 x RGB LED anode
 * 2 x 100 ohm resistors
