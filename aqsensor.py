@@ -1,12 +1,16 @@
 import matplotlib as mpl
 import numpy as np
-import json, requests
+import json
+import requests
+from requests.exceptions import HTTPError
 
 import RPi.GPIO as GPIO
 import time
+import sys, getopt
 
 class SensorLED:
-	def __init__(self, red, green, blue):
+	def __init__(self, red, green, blue, verbose = False):
+		self.verbose = verbose
 		GPIO.setup([red, green, blue], GPIO.OUT)
 		# choosing a frequency for pwm
 		Freq = 100
@@ -36,16 +40,18 @@ class SensorLED:
 	def setValue(self, value, scaling):
 		self.value = value
 		colour = self.colourFader(min((value * scaling) / 100, 1))
-		print (value, colour)
 		self.setColour(colour)
+		if self.verbose:
+			print (value, colour)
 
 
 class AQIndicator:
-	def __init__(self):
+	def __init__(self, verbose = False):
+		self.verbose = verbose
 		self.sensor_id = 0
 		self.sensor_ip = ''
-		self.p1_sensor_led = SensorLED(14, 15, 18)
-		self.p2_sensor_led = SensorLED(5, 6, 13)
+		self.p1_sensor_led = SensorLED(14, 15, 18, self.verbose)
+		self.p2_sensor_led = SensorLED(5, 6, 13, self.verbose)
 		self.direct = False # Is the reading direct from the sensor (True) or from the Luftdaten API (False)?
 		self.url = ''
 
@@ -61,72 +67,123 @@ class AQIndicator:
 	def displayLevels(self, update_frequency):
 		P1 = 0
 		P2 = 0
-		print (self.url)
-		response = requests.get(self.url)
-		if response.text:
-			try:
-				sensor_readings = json.loads(response.text)
-				if self.direct:
-					sensor = sensor_readings
-				else:
-					sensor = sensor_readings[-1]
+		if self.verbose:
+			print (self.url)
+		try:
+			response = requests.get(self.url)
+			if response.text:
+				try:
+					sensor_readings = json.loads(response.text)
+					if self.direct:
+						sensor = sensor_readings
+					else:
+						sensor = sensor_readings[-1]
 
-				for sensor_data_value in sensor['sensordatavalues']:
-					value  = sensor_data_value['value']
-					value_type = sensor_data_value['value_type']
-					if value_type in ['P1', 'SDS_P1']:
-						P1 = float(value)
-					if value_type in ['P2', 'SDS_P2']:
-						P2 = float(value)
+					for sensor_data_value in sensor['sensordatavalues']:
+						value  = sensor_data_value['value']
+						value_type = sensor_data_value['value_type']
+						if value_type in ['P1', 'SDS_P1']:
+							P1 = float(value)
+						if value_type in ['P2', 'SDS_P2']:
+							P2 = float(value)
 
-				self.p1_sensor_led.setValue(P1, 5)
-				self.p2_sensor_led.setValue(P2, 10)
+					self.p1_sensor_led.setValue(P1, 5)
+					self.p2_sensor_led.setValue(P2, 10)
 
-			except Exception as e:
-				print (e)
-				self.p1_sensor_led.setColour(mpl.colors.to_rgb('blue'))
-		else:
+				except Exception as e:
+					print (e)
+					self.p1_sensor_led.setColour(mpl.colors.to_rgb('blue'))
+			else:
+				self.p1_sensor_led.setColour(mpl.colors.to_rgb('pink'))
+		
+		except HTTPError as http_err:
+			print('HTTP error occurred: ' + http_err)
 			self.p1_sensor_led.setColour(mpl.colors.to_rgb('blue'))
+		except Exception as err:
+			print(err)
+			self.p1_sensor_led.setColour(mpl.colors.to_rgb('blue'))
+		
 		time.sleep(update_frequency)
 
 class AQIndicatorDirect(AQIndicator):
-	def __init__(self, sensor_ip):
-		super().__init__()
+	def __init__(self, sensor_ip, verbose = False):
+		super().__init__(verbose)
 		self.direct = True
 		self.sensor_ip = sensor_ip
 		self.url = 'http://' + sensor_ip + '/data.json'
 
 class AQIndicatorLuftdatenAPI(AQIndicator):
-	def __init__(self, sensor_id):
-		super().__init__()
+	def __init__(self, sensor_id, verbose = False):
+		super().__init__(verbose)
 		self.direct = False
 		self.sensor_id = sensor_id
 		self.url = 'http://api.luftdaten.info/v1/sensor/' + str(self.sensor_id) + '/'
 
-GPIO.setmode(GPIO.BCM)
 
-SENSOR_ID = 27319 # My sensor
-#SENSOR_ID = 28016 # high sensor in England
-#SENSOR_ID = 7239 # high sensor in Germany
-SENSOR_IP = '10.0.101.100'
+def usage():
+	print ('Usage: aqsensor.py [OPTIONS]\n\nOptions:\n-h --help\tShow this help text and exit\n-v --verbose\tShow diagnostic information whilst running\n-i <IP address>] --ip=<IP address>\tIP address of the sensor to get data directly from\n-s <ID> --id=<ID>\tthe Luftdaten ID of the sensor you wish to monitor\n-f <frequency> --frequency=<frequency>\tupdate frequency in milliseconds\n\nIf ID is specified then IP address is ignored.\nIf neither IP or ID are specified then the default ID is used.')
 
-UPDATE_FREQUENCY = 60
-RUNNING = True
-DIRECT = True
+def main(argv):
+	SENSOR_ID = 27319 # My sensor
+	#SENSOR_ID = 28016 # high sensor in England
+	#SENSOR_ID = 7239 # high sensor in Germany
+	SENSOR_IP = '10.0.101.100'
 
-try:
-	if DIRECT:
-		aq_indicator = AQIndicatorDirect(SENSOR_IP)
-	else:
-		aq_indicator = AQIndicatorLuftdatenAPI(SENSOR_ID)
-		
-	aq_indicator.demoCycle()
+	UPDATE_FREQUENCY = 60
+	RUNNING = True
+	DIRECT = False
 
-	while RUNNING:
-		aq_indicator.displayLevels(UPDATE_FREQUENCY)
+	update_frequency = UPDATE_FREQUENCY
+	sensor_id = SENSOR_ID
+	sensor_ip = SENSOR_IP
+	direct = DIRECT
+	verbose = False
+	try:
+		opts, args = getopt.getopt(argv, 'hvi:s:f:', ['ip=', 'id=', 'frequency=', 'verbose'])
+	except getopt.GetoptError:
+		usage()
+		sys.exit(2)
 
-except KeyboardInterrupt:
-	RUNNING = False
+	for opt, arg in opts:
+		if opt in ('-h', '--help'):
+			usage()
+			sys.exit()
+		elif opt in ('-v', '--verbose'):
+			verbose = True
+		elif opt in ('-i', '--ip'):
+			sensor_ip = arg
+			direct = True
+		elif opt in ('-s', '--id'):
+			sensor_id = arg
+			direct = False
+		elif opt in ('-f', '--frequency'):
+			try:
+				update_frequency = int(arg)
+			except:
+				usage()
+				sys.exit(2)
 
-finally:
-	GPIO.cleanup()
+	if verbose == True:
+		print('Update frequency: ' + str(update_frequency) + ' milliseconds')
+
+	GPIO.setmode(GPIO.BCM)
+	try:
+		if direct:
+			aq_indicator = AQIndicatorDirect(sensor_ip, verbose)
+		else:
+			aq_indicator = AQIndicatorLuftdatenAPI(sensor_id, verbose)
+
+		aq_indicator.demoCycle()
+
+		while RUNNING:
+			aq_indicator.displayLevels(update_frequency)
+
+	except KeyboardInterrupt:
+		RUNNING = False
+
+	finally:
+		GPIO.cleanup()
+
+
+if __name__ == "__main__":
+	main(sys.argv[1:])

@@ -46,3 +46,17 @@ Change the following in the code:
 ```
 sudo python3 aqsensor.py
 ```
+
+```
+Usage: aqsensor.py [OPTIONS]
+
+Options:
+-h --help	Show this help text and exit
+-v --verbose	Show diagnostic information whilst running
+-i <IP address>] --ip=<IP address>	IP address of the sensor to get data directly from
+-s <ID> --id=<ID>	the Luftdaten ID of the sensor you wish to monitor
+-f <frequency> --frequency=<frequency>	update frequency in milliseconds
+
+If ID is specified then IP address is ignored.
+If neither IP or ID are specified then the default ID is used.
+```
