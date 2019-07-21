@@ -46,7 +46,7 @@ class AQIndicator:
 	def __init__(self, sensor_id):
 		self.sensor_id = sensor_id
 		self.p1_sensor_led = SensorLED(14, 15, 18)
-		self.p2_sensor_led = SensorLED(6, 5, 13)
+		self.p2_sensor_led = SensorLED(5, 6, 13)
 
 	# Test cycle through the colour range
 	def demoCycle(self):
