@@ -60,3 +60,23 @@ Options:
 If ID is specified then IP address is ignored.
 If neither IP or ID are specified then the default ID is used.
 ```
+
+Or it can be run in the background by setting the permission of the file to allow execution:
+
+```
+chmod +x aqsensor.py
+```
+
+To start it running (and be able to close the terminal and leave it running):
+
+```
+nohup ./aqsensor.py &
+```
+
+To stop it running in the background:
+
+```
+ps ax | grep aqsensor.py
+kill PID
+```
+
